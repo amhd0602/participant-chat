@@ -289,11 +289,10 @@ function ChatRoomContent() {
     }
   };
 
-  const handleSend = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const sendContent = async (rawText: string, clearInput: boolean) => {
     if (sending || roomNotFound) return;
     setErrorMsg('');
-    const text = inputText.trim();
+    const text = rawText.trim();
     if (!text || !roomId) return;
     if (text.length > 2000) {
       setErrorMsg(`メッセージは2000文字以内で入力してください（現在${text.length}文字）。`);
@@ -313,7 +312,9 @@ function ChatRoomContent() {
         setErrorMsg(`送信エラー: ${error.message}`);
         return;
       }
-      setInputText('');
+      if (clearInput) {
+        setInputText('');
+      }
 
       if (isGroupChat) {
         void triggerAiPeer(roomId);
@@ -323,6 +324,15 @@ function ChatRoomContent() {
     } finally {
       setSending(false);
     }
+  };
+
+  const handleSend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await sendContent(inputText, true);
+  };
+
+  const handleQuickEmojiSend = async (emoji: string) => {
+    await sendContent(emoji, false);
   };
 
   if (!isRegistered) {
@@ -489,6 +499,21 @@ function ChatRoomContent() {
       {errorMsg && (
         <p className="mb-2 rounded bg-red-50 p-2 text-xs text-red-600">{errorMsg}</p>
       )}
+
+      <div className="mb-2 flex items-center gap-1.5">
+        {["👍","👏","🙏","😄"].map((emoji) => (
+          <button
+            key={emoji}
+            type="button"
+            disabled={sending || roomNotFound}
+            onClick={() => void handleQuickEmojiSend(emoji)}
+            aria-label={`${emoji}を送信`}
+            className="rounded border bg-white px-2.5 py-1 text-base leading-none hover:bg-gray-100 disabled:opacity-50"
+          >
+            {emoji}
+          </button>
+        ))}
+      </div>
 
       <form onSubmit={handleSend} className="flex gap-2">
         <input
