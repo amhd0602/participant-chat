@@ -124,7 +124,10 @@ export default function HomePage() {
   return (
     <main className="mx-auto flex min-h-screen max-w-xl flex-col justify-center gap-6 p-6">
       <div>
-        <h1 className="text-2xl font-bold">Participant</h1>
+        <div className="flex flex-wrap items-baseline gap-2">
+          <h1 className="text-2xl font-bold">Participant</h1>
+          <span className="text-sm font-normal text-gray-500">AI参加型グループチャット</span>
+        </div>
         <p className="mt-1 text-sm text-gray-500">
           使う AI を選択して、チャットルームを作成または参加してください。
         </p>
