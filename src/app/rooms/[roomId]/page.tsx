@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Suspense, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { AiModeSelector } from '@/components/AiModeSelector';
 import { AI_MODE_OPTIONS, type AiMode, clearByokApiKey, loadAiSelection, saveAiSelection } from '@/types/ai-selection';
 
 type ChatMessage = {
@@ -74,14 +75,20 @@ function ChatRoomContent() {
   const lastAiTriggerAtRef = useRef(0);
 
   const [selectedAiMode, setSelectedAiMode] = useState<AiMode>(() => loadAiSelection(queryAiMode).aiMode);
+  const [draftApiKey, setDraftApiKey] = useState<string>(() => loadAiSelection(queryAiMode).apiKey ?? '');
+  const [isAiSettingsOpen, setIsAiSettingsOpen] = useState(false);
 
   useEffect(() => {
-    setSelectedAiMode(loadAiSelection(queryAiMode).aiMode);
+    const loaded = loadAiSelection(queryAiMode);
+    setSelectedAiMode(loaded.aiMode);
+    setDraftApiKey(loaded.apiKey ?? '');
   }, [queryAiMode]);
 
+  const storedSelection = loadAiSelection(queryAiMode);
   const currentSelection = {
-    ...loadAiSelection(queryAiMode),
+    ...storedSelection,
     aiMode: selectedAiMode,
+    apiKey: selectedAiMode === 'byok' ? (draftApiKey.trim() || storedSelection.apiKey) : undefined,
   };
   const currentAiLabel =
     AI_MODE_OPTIONS.find((opt) => opt.value === selectedAiMode)?.label ??
@@ -89,13 +96,42 @@ function ChatRoomContent() {
 
   const handleToggleAiMode = () => {
     const nextMode: AiMode = selectedAiMode === 'lite' ? 'standard' : 'lite';
-    const existing = loadAiSelection(queryAiMode);
     saveAiSelection({
       aiMode: nextMode,
       apiKey: undefined,
     });
     setSelectedAiMode(nextMode);
+    setErrorMsg('');
     setQuotaNotice('');
+  };
+
+  const handleSelectAiMode = (mode: AiMode) => {
+    const trimmedKey = draftApiKey.trim();
+    saveAiSelection({
+      aiMode: mode,
+      apiKey: mode === 'byok' ? (trimmedKey || undefined) : undefined,
+    });
+    setSelectedAiMode(mode);
+    setErrorMsg('');
+    setQuotaNotice('');
+  };
+
+  const handleChangeDraftApiKey = (nextKey: string) => {
+    setDraftApiKey(nextKey);
+    const trimmed = nextKey.trim();
+    saveAiSelection({
+      aiMode: selectedAiMode,
+      apiKey: selectedAiMode === 'byok' ? (trimmed || undefined) : undefined,
+    });
+    if (trimmed) {
+      setErrorMsg('');
+    }
+  };
+
+  const handleClearRoomByokKey = () => {
+    clearByokApiKey();
+    setDraftApiKey('');
+    setErrorMsg('');
   };
 
   const distinctHumanSenders = useMemo(() => {
@@ -252,6 +288,12 @@ function ChatRoomContent() {
     lastAiTriggerAtRef.current = now;
     try {
       const selection = loadAiSelection(queryAiMode);
+      const effectiveApiKey = draftApiKey.trim() || selection.apiKey;
+      if (selectedAiMode === 'byok' && !effectiveApiKey) {
+        setIsAiSettingsOpen(true);
+        setErrorMsg('BYOK を使うには Gemini API キーを入力してください。');
+        return;
+      }
       const res = await fetch('/api/ai-peer', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -259,8 +301,8 @@ function ChatRoomContent() {
           roomId: currentRoomId,
           senderName: 'Participant（修行中）',
           aiMode: selectedAiMode,
-          ...(selection.aiMode === 'byok' && selection.apiKey
-            ? { apiKey: selection.apiKey }
+          ...(selectedAiMode === 'byok' && effectiveApiKey
+            ? { apiKey: effectiveApiKey }
             : {}),
         }),
       });
@@ -452,13 +494,46 @@ function ChatRoomContent() {
           </span>
         </div>
         <p className="mt-1 text-xs text-gray-500">表示名: {userName}</p>
-        <button
-          type="button"
-          onClick={handleToggleAiMode}
-          className="mt-0.5 text-left text-xs text-blue-600 underline decoration-blue-300 underline-offset-2 hover:text-blue-800"
-        >
-          使用AI: {currentAiLabel}（クリックで切替）
-        </button>
+        <div className="mt-0.5 flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={handleToggleAiMode}
+            className="text-left text-xs text-blue-600 underline decoration-blue-300 underline-offset-2 hover:text-blue-800"
+          >
+            使用AI: {currentAiLabel}（クリックで切替）
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsAiSettingsOpen((prev) => !prev)}
+            className="rounded border border-gray-300 px-2 py-0.5 text-xs text-gray-700 hover:bg-gray-50"
+          >
+            {isAiSettingsOpen ? 'AI設定を閉じる' : 'AI設定・BYOK'}
+          </button>
+        </div>
+        {isAiSettingsOpen && (
+          <div className="mt-2 space-y-2 rounded-lg border border-gray-200 bg-gray-50 p-3">
+            <AiModeSelector
+              aiMode={selectedAiMode}
+              apiKey={draftApiKey}
+              onChangeMode={handleSelectAiMode}
+              onChangeApiKey={handleChangeDraftApiKey}
+            />
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+              <span className="text-xs text-gray-500">
+                ※ API キーはこのブラウザの sessionStorage にのみ保存されます。
+              </span>
+              {draftApiKey && (
+                <button
+                  type="button"
+                  onClick={handleClearRoomByokKey}
+                  className="rounded border border-red-200 bg-white px-2 py-1 text-xs text-red-600 hover:bg-red-50"
+                >
+                  保存済みキーを消去
+                </button>
+              )}
+            </div>
+          </div>
+        )}
         <p className="text-xs text-gray-500">
           AI利用枠:{' '}
           {currentSelection.aiMode === 'byok'
