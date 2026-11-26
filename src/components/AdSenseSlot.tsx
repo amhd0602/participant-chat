@@ -35,7 +35,7 @@ export function AdSenseSlot({ slotId, className = '' }: AdSenseSlotProps) {
         aria-label="広告枠プレースホルダー"
         className={`mt-2.5 flex min-h-[44px] w-full shrink-0 items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50/80 px-3 py-1.5 text-[11px] text-gray-400 dark:border-neutral-800 dark:bg-neutral-900/50 dark:text-neutral-500 ${className}`}
       >
-        広告枠
+        Ad
       </div>
     );
   }
