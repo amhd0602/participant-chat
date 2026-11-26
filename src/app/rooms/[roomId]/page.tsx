@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Suspense, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { AI_MODE_OPTIONS, clearByokApiKey, loadAiSelection } from '@/types/ai-selection';
+import { AI_MODE_OPTIONS, type AiMode, clearByokApiKey, loadAiSelection, saveAiSelection } from '@/types/ai-selection';
 
 type ChatMessage = {
   id: string;
@@ -73,10 +73,30 @@ function ChatRoomContent() {
   const aiTriggeringRef = useRef(false);
   const lastAiTriggerAtRef = useRef(0);
 
-  const currentSelection = loadAiSelection(queryAiMode);
+  const [selectedAiMode, setSelectedAiMode] = useState<AiMode>(() => loadAiSelection(queryAiMode).aiMode);
+
+  useEffect(() => {
+    setSelectedAiMode(loadAiSelection(queryAiMode).aiMode);
+  }, [queryAiMode]);
+
+  const currentSelection = {
+    ...loadAiSelection(queryAiMode),
+    aiMode: selectedAiMode,
+  };
   const currentAiLabel =
-    AI_MODE_OPTIONS.find((opt) => opt.value === currentSelection.aiMode)?.label ??
+    AI_MODE_OPTIONS.find((opt) => opt.value === selectedAiMode)?.label ??
     '標準（Gemini Flash）';
+
+  const handleToggleAiMode = () => {
+    const nextMode: AiMode = selectedAiMode === 'lite' ? 'standard' : 'lite';
+    const existing = loadAiSelection(queryAiMode);
+    saveAiSelection({
+      aiMode: nextMode,
+      apiKey: undefined,
+    });
+    setSelectedAiMode(nextMode);
+    setQuotaNotice('');
+  };
 
   const distinctHumanSenders = useMemo(() => {
     const names = new Set<string>();
@@ -181,7 +201,7 @@ function ChatRoomContent() {
             if (prev.some((m) => m.id === newMsg.id)) return prev;
             return [...prev, newMsg];
           });
-          if (newMsg.sender_type === 'ai' && loadAiSelection(queryAiMode).aiMode !== 'byok') {
+          if (newMsg.sender_type === 'ai' && selectedAiMode !== 'byok') {
             setAiUsedCount((prev) => (prev === null ? 1 : prev + 1));
           }
         }
@@ -238,7 +258,7 @@ function ChatRoomContent() {
         body: JSON.stringify({
           roomId: currentRoomId,
           senderName: 'Participant（修行中）',
-          aiMode: selection.aiMode,
+          aiMode: selectedAiMode,
           ...(selection.aiMode === 'byok' && selection.apiKey
             ? { apiKey: selection.apiKey }
             : {}),
@@ -432,7 +452,13 @@ function ChatRoomContent() {
           </span>
         </div>
         <p className="mt-1 text-xs text-gray-500">表示名: {userName}</p>
-        <p className="text-xs text-blue-600">使用AI: {currentAiLabel}</p>
+        <button
+          type="button"
+          onClick={handleToggleAiMode}
+          className="mt-0.5 text-left text-xs text-blue-600 underline decoration-blue-300 underline-offset-2 hover:text-blue-800"
+        >
+          使用AI: {currentAiLabel}（クリックで切替）
+        </button>
         <p className="text-xs text-gray-500">
           AI利用枠:{' '}
           {currentSelection.aiMode === 'byok'
