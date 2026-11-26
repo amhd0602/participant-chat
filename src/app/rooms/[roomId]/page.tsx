@@ -400,23 +400,23 @@ function ChatRoomContent() {
   if (!isRegistered) {
     return (
       <main className="mx-auto flex h-screen max-w-md flex-col justify-center p-4">
-        <div className="rounded border p-6 shadow-xs">
+        <div className="rounded-lg border border-gray-200 bg-white p-6 text-gray-900 shadow-xs dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-100">
           <div className="flex items-center justify-between gap-2">
             <h1 className="text-lg font-bold">{roomName || 'チャットルーム'}</h1>
             <Link
               href="/"
               onClick={() => clearByokApiKey()}
-              className="text-xs text-gray-500 hover:underline"
+              className="text-xs text-gray-600 hover:underline dark:text-neutral-400 dark:hover:text-neutral-200"
             >
               トップへ戻る
             </Link>
           </div>
-          <p className="mt-2 text-xs text-gray-500">
+          <p className="mt-2 text-xs text-gray-600 dark:text-neutral-400">
             このチャットに初めて参加します。表示名を登録してください。
           </p>
 
           <form onSubmit={handleRegisterName} className="mt-4 flex flex-col gap-3">
-            <label className="flex flex-col gap-1 text-xs font-medium text-gray-700">
+            <label className="flex flex-col gap-1 text-xs font-medium text-gray-700 dark:text-neutral-200">
               表示名
               <input
                 type="text"
@@ -424,12 +424,12 @@ function ChatRoomContent() {
                 onChange={(e) => setNameInput(e.target.value)}
                 placeholder="例: たろう（空欄なら ゲスト）"
                 autoFocus
-                className="rounded border px-3 py-2 text-sm text-gray-900"
+                className="rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100 dark:placeholder:text-neutral-500"
               />
             </label>
             <button
               type="submit"
-              className="rounded bg-black px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+              className="rounded bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-200"
             >
               この名前で参加する
             </button>
@@ -442,15 +442,15 @@ function ChatRoomContent() {
   if (roomNotFound) {
     return (
       <main className="mx-auto flex h-screen max-w-md flex-col justify-center p-4">
-        <div className="rounded border p-6 text-center shadow-xs">
+        <div className="rounded-lg border border-gray-200 bg-white p-6 text-center text-gray-900 shadow-xs dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-100">
           <h1 className="text-lg font-bold">ルームが見つかりませんでした</h1>
-          <p className="mt-2 text-xs text-gray-500">
+          <p className="mt-2 text-xs text-gray-600 dark:text-neutral-400">
             URLが間違っているか、ルームが存在しない可能性があります。
           </p>
           <Link
             href="/"
             onClick={() => clearByokApiKey()}
-            className="mt-4 inline-block rounded bg-black px-4 py-2 text-sm text-white"
+            className="mt-4 inline-block rounded bg-neutral-900 px-4 py-2 text-sm text-white dark:bg-neutral-100 dark:text-neutral-900"
           >
             トップへ戻る
           </Link>
@@ -461,31 +461,31 @@ function ChatRoomContent() {
 
   return (
     <main className="mx-auto flex h-screen max-w-2xl flex-col p-4">
-      <header className="border-b pb-3">
+      <header className="border-b border-gray-200 pb-3 dark:border-neutral-800">
         <div className="flex items-center justify-between gap-2">
           <h1 className="text-lg font-bold">{roomName || 'チャットルーム'}</h1>
           <Link
             href="/"
             onClick={() => clearByokApiKey()}
-            className="rounded border px-2.5 py-1 text-xs text-gray-700 hover:bg-gray-50"
+            className="rounded border border-gray-300 bg-white px-2.5 py-1 text-xs text-gray-700 hover:bg-gray-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800"
           >
             ← 退室する
           </Link>
         </div>
         <div className="mt-1 flex flex-wrap items-center gap-2">
-          <p className="text-xs text-gray-500">Room ID: {roomId}</p>
+          <p className="text-xs text-gray-500 dark:text-neutral-400">Room ID: {roomId}</p>
           <button
             type="button"
             onClick={handleCopyInviteLink}
-            className="rounded border px-2 py-0.5 text-xs text-gray-700 hover:bg-gray-50"
+            className="rounded border border-gray-300 bg-white px-2 py-0.5 text-xs text-gray-700 hover:bg-gray-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800"
           >
             {copiedLink ? 'コピーしました' : '招待リンクをコピー'}
           </button>
           <span
             className={`rounded-full px-2 py-0.5 text-xs ${
               isGroupChat
-                ? 'bg-emerald-50 text-emerald-700'
-                : 'bg-gray-100 text-gray-600'
+                ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
+                : 'bg-gray-100 text-gray-600 dark:bg-neutral-800 dark:text-neutral-300'
             }`}
           >
             {isGroupChat
@@ -493,25 +493,25 @@ function ChatRoomContent() {
               : '参加者 1人（招待待ち）'}
           </span>
         </div>
-        <p className="mt-1 text-xs text-gray-500">表示名: {userName}</p>
+        <p className="mt-1 text-xs text-gray-500 dark:text-neutral-400">表示名: {userName}</p>
         <div className="mt-0.5 flex flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={handleToggleAiMode}
-            className="text-left text-xs text-blue-600 underline decoration-blue-300 underline-offset-2 hover:text-blue-800"
+            className="text-left text-xs text-blue-600 underline decoration-blue-300 underline-offset-2 hover:text-blue-800 dark:text-blue-400 dark:decoration-blue-700 dark:hover:text-blue-300"
           >
             使用AI: {currentAiLabel}（クリックで切替）
           </button>
           <button
             type="button"
             onClick={() => setIsAiSettingsOpen((prev) => !prev)}
-            className="rounded border border-gray-300 px-2 py-0.5 text-xs text-gray-700 hover:bg-gray-50"
+            className="rounded border border-gray-300 bg-white px-2 py-0.5 text-xs text-gray-700 hover:bg-gray-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800"
           >
             {isAiSettingsOpen ? 'AI設定を閉じる' : 'AI設定・BYOK'}
           </button>
         </div>
         {isAiSettingsOpen && (
-          <div className="mt-2 space-y-2 rounded-lg border border-gray-200 bg-gray-50 p-3">
+          <div className="mt-2 space-y-2 rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-neutral-800 dark:bg-neutral-900/90">
             <AiModeSelector
               aiMode={selectedAiMode}
               apiKey={draftApiKey}
@@ -519,14 +519,14 @@ function ChatRoomContent() {
               onChangeApiKey={handleChangeDraftApiKey}
             />
             <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-gray-500 dark:text-neutral-400">
                 ※ API キーはこのブラウザの sessionStorage にのみ保存されます。
               </span>
               {draftApiKey && (
                 <button
                   type="button"
                   onClick={handleClearRoomByokKey}
-                  className="rounded border border-red-200 bg-white px-2 py-1 text-xs text-red-600 hover:bg-red-50"
+                  className="rounded border border-red-200 bg-white px-2 py-1 text-xs text-red-600 hover:bg-red-50 dark:border-red-900/70 dark:bg-neutral-950 dark:text-red-400 dark:hover:bg-red-950/50"
                 >
                   保存済みキーを消去
                 </button>
@@ -544,16 +544,16 @@ function ChatRoomContent() {
         </p>
       </header>
 
-      <div className="my-4 flex flex-1 flex-col gap-3 overflow-y-auto rounded border p-3">
+      <div className="my-4 flex flex-1 flex-col gap-3 overflow-y-auto rounded-lg border border-gray-200 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-950/60">
         {messages.length === 0 && !soloPromptShown ? (
-          <p className="text-sm text-gray-400">まだメッセージはありません。</p>
+          <p className="text-sm text-gray-400 dark:text-neutral-500">まだメッセージはありません。</p>
         ) : (
           messages.map((msg) => (
             <div
               key={msg.id}
-              className="rounded bg-gray-50 p-2.5 text-sm text-gray-900"
+              className="rounded-lg bg-gray-100 p-2.5 text-sm text-gray-900 dark:bg-neutral-900 dark:text-neutral-100"
             >
-              <div className="text-xs font-semibold text-gray-600">
+              <div className="text-xs font-semibold text-gray-600 dark:text-neutral-400">
                 {msg.sender_name || msg.sender_type}
                 {msg.sender_type === 'ai' ? ' (AI)' : ''}
               </div>
@@ -563,8 +563,8 @@ function ChatRoomContent() {
         )}
 
         {!isGroupChat && soloPromptShown && (
-          <div className="rounded border border-blue-100 bg-blue-50/70 p-3 text-sm text-gray-800">
-            <div className="text-xs font-semibold text-blue-700">
+          <div className="rounded-lg border border-blue-100 bg-blue-50/70 p-3 text-sm text-gray-800 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-neutral-100">
+            <div className="text-xs font-semibold text-blue-700 dark:text-blue-300">
               Participant（修行中） (AI)
             </div>
             <p className="mt-1 whitespace-pre-wrap">
@@ -573,7 +573,7 @@ function ChatRoomContent() {
             <button
               type="button"
               onClick={handleCopyInviteLink}
-              className="mt-2 rounded border border-blue-200 bg-white px-2.5 py-1 text-xs font-medium text-blue-700 hover:bg-blue-50"
+              className="mt-2 rounded border border-blue-200 bg-white px-2.5 py-1 text-xs font-medium text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:bg-neutral-900 dark:text-blue-300 dark:hover:bg-neutral-800"
             >
               {copiedLink ? '招待リンクをコピーしました！' : '招待リンクをコピーして誘う'}
             </button>
@@ -584,7 +584,7 @@ function ChatRoomContent() {
       </div>
 
       {quotaNotice && (
-        <div className="mb-2 flex items-center justify-between gap-2 rounded bg-amber-50 p-2 text-xs text-amber-800">
+        <div className="mb-2 flex items-center justify-between gap-2 rounded bg-amber-50 p-2 text-xs text-amber-800 dark:bg-amber-950/50 dark:text-amber-200">
           <span>{quotaNotice}</span>
           <button
             type="button"
@@ -598,7 +598,7 @@ function ChatRoomContent() {
       )}
 
       {errorMsg && (
-        <p className="mb-2 rounded bg-red-50 p-2 text-xs text-red-600">{errorMsg}</p>
+        <p className="mb-2 rounded bg-red-50 p-2 text-xs text-red-600 dark:bg-red-950/50 dark:text-red-300">{errorMsg}</p>
       )}
 
       <div className="mb-2 flex items-center gap-1.5">
@@ -609,7 +609,7 @@ function ChatRoomContent() {
             disabled={sending || roomNotFound}
             onClick={() => void handleQuickEmojiSend(emoji)}
             aria-label={`${emoji}を送信`}
-            className="rounded border bg-white px-2.5 py-1 text-base leading-none hover:bg-gray-100 disabled:opacity-50"
+            className="rounded border border-gray-300 bg-white px-2.5 py-1 text-base leading-none hover:bg-gray-100 disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-900 dark:hover:bg-neutral-800"
           >
             {emoji}
           </button>
@@ -622,12 +622,12 @@ function ChatRoomContent() {
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
           placeholder="メッセージを入力..."
-          className="flex-1 rounded border px-3 py-2 text-sm"
+          className="flex-1 rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:placeholder:text-neutral-500"
         />
         <button
           type="submit"
           disabled={sending}
-          className="rounded bg-black px-4 py-2 text-sm text-white disabled:opacity-50"
+          className="rounded bg-neutral-900 px-4 py-2 text-sm text-white hover:bg-neutral-800 disabled:opacity-50 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-200"
         >
           {sending ? '送信中...' : '送信'}
         </button>
