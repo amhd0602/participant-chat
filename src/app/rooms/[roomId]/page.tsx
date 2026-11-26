@@ -91,8 +91,17 @@ function ChatRoomContent() {
   const humanCount = Math.max(onlineCount, distinctHumanSenders);
   const isGroupChat = humanCount >= 2;
 
+  const hasScrolledInitiallyRef = useRef(false);
+
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (!bottomRef.current) return;
+    if (!hasScrolledInitiallyRef.current) {
+      if (messages.length === 0) return;
+      hasScrolledInitiallyRef.current = true;
+      bottomRef.current.scrollIntoView({ behavior: 'instant' });
+      return;
+    }
+    bottomRef.current.scrollIntoView({ behavior: 'smooth' });
   }, [messages.length, soloPromptShown]);
 
   useEffect(() => {
