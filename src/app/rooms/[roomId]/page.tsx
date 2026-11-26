@@ -555,7 +555,7 @@ function ChatRoomContent() {
         )}
       </header>
 
-      <div className="my-3 flex flex-1 flex-col gap-2.5 overflow-y-auto rounded-lg border border-gray-200 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-950/60">
+      <div className="my-3 flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto rounded-lg border border-gray-200 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-950/60">
         {messages.length === 0 && !soloPromptShown ? (
           <p className="text-sm text-gray-400 dark:text-neutral-500">まだメッセージはありません。</p>
         ) : (
@@ -647,7 +647,7 @@ function ChatRoomContent() {
         </p>
       )}
 
-      <div className="mb-2 flex items-center gap-1.5">
+      <div className="mb-2 flex shrink-0 items-center gap-1.5">
         {["👍","👏","🙏","😄"].map((emoji) => (
           <button
             key={emoji}
@@ -662,7 +662,7 @@ function ChatRoomContent() {
         ))}
       </div>
 
-      <form onSubmit={handleSend} className="flex gap-2">
+      <form onSubmit={handleSend} className="flex shrink-0 gap-2">
         <input
           type="text"
           value={inputText}
