@@ -170,7 +170,7 @@ export default function HomePage() {
           <span className="text-sm font-normal text-blue-600 dark:text-blue-400 underline underline-offset-4 decoration-blue-500/60 dark:decoration-blue-400/60">会話参加型 AI グループチャット</span>
         </div>
         <p className="mt-1 text-sm text-gray-500">
-          使う AI を選択して、チャットルームを作成または参加してください。
+          使用する AI を選択し、チャットルームを作成または参加してください。
         </p>
       </div>
 
