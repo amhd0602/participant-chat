@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { AiModeSelector } from '@/components/AiModeSelector';
@@ -27,6 +27,26 @@ export default function HomePage() {
   const [roomIdInput, setRoomIdInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [showIntro, setShowIntro] = useState(true);
+  const [introFading, setIntroFading] = useState(false);
+
+  const dismissIntro = useCallback(() => {
+    setShowIntro(false);
+  }, []);
+
+  useEffect(() => {
+    if (!showIntro) return;
+    const fadeTimer = window.setTimeout(() => {
+      setIntroFading(true);
+    }, 2600);
+    const hideTimer = window.setTimeout(() => {
+      setShowIntro(false);
+    }, 3000);
+    return () => {
+      window.clearTimeout(fadeTimer);
+      window.clearTimeout(hideTimer);
+    };
+  }, [showIntro]);
 
   const userName =
     userNameOverride !== null
@@ -122,7 +142,26 @@ export default function HomePage() {
   };
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-xl flex-col justify-center gap-6 p-6">
+    <>
+      {showIntro && (
+        <div
+          onClick={dismissIntro}
+          role="dialog"
+          aria-label="導入画面"
+          className={`fixed inset-0 z-50 flex cursor-pointer flex-col items-center justify-center bg-black px-6 text-white transition-opacity duration-300 ${
+            introFading ? 'opacity-0' : 'opacity-100'
+          }`}
+        >
+          <div className="flex flex-col items-center gap-2 text-center">
+            <span className="text-3xl font-bold tracking-tight">Participant</span>
+            <span className="text-sm font-normal text-blue-400 underline underline-offset-4 decoration-blue-400/70">
+              会話参加型 AI グループチャット
+            </span>
+          </div>
+          <span className="mt-8 text-xs text-neutral-500">タップまたは3秒で進みます</span>
+        </div>
+      )}
+      <main className="mx-auto flex min-h-screen max-w-xl flex-col justify-center gap-6 p-6">
       <div>
         <div className="flex flex-wrap items-baseline gap-2">
           <h1 className="text-2xl font-bold">Participant</h1>
@@ -191,5 +230,6 @@ export default function HomePage() {
       )}
       <AdSenseSlot />
     </main>
+    </>
   );
 }
