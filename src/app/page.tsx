@@ -126,7 +126,7 @@ export default function HomePage() {
       <div>
         <div className="flex flex-wrap items-baseline gap-2">
           <h1 className="text-2xl font-bold">Participant</h1>
-          <span className="text-sm font-normal text-gray-900 dark:text-neutral-100">AI参加型グループチャット</span>
+          <span className="text-sm font-normal text-amber-600 dark:text-yellow-400">会話参加型 AI グループチャット</span>
         </div>
         <p className="mt-1 text-sm text-gray-500">
           使う AI を選択して、チャットルームを作成または参加してください。
