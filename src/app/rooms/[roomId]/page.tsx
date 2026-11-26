@@ -461,57 +461,75 @@ function ChatRoomContent() {
 
   return (
     <main className="mx-auto flex h-screen max-w-2xl flex-col p-4">
-      <header className="border-b border-gray-200 pb-3 dark:border-neutral-800">
+      <header className="border-b border-gray-200 pb-2.5 dark:border-neutral-800">
         <div className="flex items-center justify-between gap-2">
-          <h1 className="text-lg font-bold">{roomName || 'チャットルーム'}</h1>
+          <div className="flex min-w-0 items-center gap-2">
+            <h1 className="truncate text-base font-bold sm:text-lg">
+              {roomName || 'チャットルーム'}
+            </h1>
+            <span
+              className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                isGroupChat
+                  ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
+                  : 'bg-gray-100 text-gray-600 dark:bg-neutral-800 dark:text-neutral-300'
+              }`}
+            >
+              {isGroupChat
+                ? `参加者 ${humanCount}人・AI参加中`
+                : `参加者 1人（招待待ち）`}
+            </span>
+          </div>
           <Link
             href="/"
             onClick={() => clearByokApiKey()}
-            className="rounded border border-gray-300 bg-white px-2.5 py-1 text-xs text-gray-700 hover:bg-gray-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800"
+            className="shrink-0 rounded border border-gray-300 bg-white px-2.5 py-1 text-xs text-gray-700 hover:bg-gray-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800"
           >
-            ← 退室する
+            ← 退室
           </Link>
         </div>
-        <div className="mt-1 flex flex-wrap items-center gap-2">
-          <p className="text-xs text-gray-500 dark:text-neutral-400">Room ID: {roomId}</p>
+
+        <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500 dark:text-neutral-400">
+          <span title={roomId} className="font-mono text-[11px]">
+            ID: {roomId ? `${roomId.slice(0, 8)}…` : ''}
+          </span>
           <button
             type="button"
             onClick={handleCopyInviteLink}
-            className="rounded border border-gray-300 bg-white px-2 py-0.5 text-xs text-gray-700 hover:bg-gray-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800"
+            className="rounded border border-gray-300 bg-white px-2 py-0.5 text-[11px] text-gray-700 hover:bg-gray-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800"
           >
-            {copiedLink ? 'コピーしました' : '招待リンクをコピー'}
+            {copiedLink ? 'コピー済み' : '招待リンクをコピー'}
           </button>
-          <span
-            className={`rounded-full px-2 py-0.5 text-xs ${
-              isGroupChat
-                ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
-                : 'bg-gray-100 text-gray-600 dark:bg-neutral-800 dark:text-neutral-300'
-            }`}
-          >
-            {isGroupChat
-              ? `参加者 ${humanCount}人・Participant参加中`
-              : '参加者 1人（招待待ち）'}
-          </span>
+          <span aria-hidden="true">・</span>
+          <span>表示名: {userName}</span>
         </div>
-        <p className="mt-1 text-xs text-gray-500 dark:text-neutral-400">表示名: {userName}</p>
-        <div className="mt-0.5 flex flex-wrap items-center gap-2">
+
+        <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs">
           <button
             type="button"
             onClick={handleToggleAiMode}
-            className="text-left text-xs text-blue-600 underline decoration-blue-300 underline-offset-2 hover:text-blue-800 dark:text-blue-400 dark:decoration-blue-700 dark:hover:text-blue-300"
+            className="text-left text-blue-600 underline decoration-blue-300 underline-offset-2 hover:text-blue-800 dark:text-blue-400 dark:decoration-blue-700 dark:hover:text-blue-300"
           >
-            使用AI: {currentAiLabel}（クリックで切替）
+            AI: {currentAiLabel}（切替）
           </button>
           <button
             type="button"
             onClick={() => setIsAiSettingsOpen((prev) => !prev)}
-            className="rounded border border-gray-300 bg-white px-2 py-0.5 text-xs text-gray-700 hover:bg-gray-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800"
+            className="rounded border border-gray-300 bg-white px-2 py-0.5 text-[11px] text-gray-700 hover:bg-gray-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800"
           >
-            {isAiSettingsOpen ? 'AI設定を閉じる' : 'AI設定・BYOK'}
+            {isAiSettingsOpen ? '設定を閉じる' : 'AI設定・BYOK'}
           </button>
+          <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[11px] text-gray-600 dark:bg-neutral-800 dark:text-neutral-300">
+            利用枠:{' '}
+            {currentSelection.aiMode === 'byok'
+              ? '無制限 (BYOK)'
+              : aiUsedCount === null
+                ? `上限${ROOM_AI_LIMIT}回`
+                : `残り${Math.max(0, ROOM_AI_LIMIT - aiUsedCount)}/${ROOM_AI_LIMIT}回`}
+          </span>
         </div>
+
         {isAiSettingsOpen && (
-          <div className="mt-2 space-y-2 rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-neutral-800 dark:bg-neutral-900/90">
+          <div className="mt-2 max-h-[45vh] space-y-2 overflow-y-auto rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-neutral-800 dark:bg-neutral-900/90">
             <AiModeSelector
               aiMode={selectedAiMode}
               apiKey={draftApiKey}
@@ -534,40 +552,61 @@ function ChatRoomContent() {
             </div>
           </div>
         )}
-        <p className="text-xs text-gray-500">
-          AI利用枠:{' '}
-          {currentSelection.aiMode === 'byok'
-            ? '無制限（BYOK）'
-            : aiUsedCount === null
-              ? `上限 ${ROOM_AI_LIMIT}回`
-              : `残り ${Math.max(0, ROOM_AI_LIMIT - aiUsedCount)} / ${ROOM_AI_LIMIT}回`}
-        </p>
       </header>
 
-      <div className="my-4 flex flex-1 flex-col gap-3 overflow-y-auto rounded-lg border border-gray-200 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-950/60">
+      <div className="my-3 flex flex-1 flex-col gap-2.5 overflow-y-auto rounded-lg border border-gray-200 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-950/60">
         {messages.length === 0 && !soloPromptShown ? (
           <p className="text-sm text-gray-400 dark:text-neutral-500">まだメッセージはありません。</p>
         ) : (
-          messages.map((msg) => (
-            <div
-              key={msg.id}
-              className="rounded-lg bg-gray-100 p-2.5 text-sm text-gray-900 dark:bg-neutral-900 dark:text-neutral-100"
-            >
-              <div className="text-xs font-semibold text-gray-600 dark:text-neutral-400">
-                {msg.sender_name || msg.sender_type}
-                {msg.sender_type === 'ai' ? ' (AI)' : ''}
+          messages.map((msg) => {
+            const isAi = msg.sender_type === 'ai';
+            const isSelf = !isAi && Boolean(userName) && msg.sender_name === userName;
+            const bubbleClass = isAi
+              ? 'border border-blue-200/80 bg-blue-50/80 text-gray-900 dark:border-blue-900/60 dark:bg-blue-950/35 dark:text-neutral-100'
+              : isSelf
+                ? 'border border-emerald-200/70 bg-emerald-50/50 text-gray-900 dark:border-emerald-900/50 dark:bg-emerald-950/25 dark:text-neutral-100'
+                : 'border border-gray-200/80 bg-gray-50 text-gray-900 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-100';
+            const nameClass = isAi
+              ? 'text-blue-700 dark:text-blue-300'
+              : isSelf
+                ? 'text-emerald-800 dark:text-emerald-300'
+                : 'text-gray-600 dark:text-neutral-400';
+
+            return (
+              <div
+                key={msg.id}
+                className={`rounded-lg p-2.5 text-sm ${bubbleClass}`}
+              >
+                <div className="flex items-center gap-1.5 text-xs font-semibold">
+                  <span className={nameClass}>
+                    {msg.sender_name || msg.sender_type}
+                  </span>
+                  {isAi && (
+                    <span className="rounded-full bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium text-blue-700 dark:bg-blue-900/70 dark:text-blue-200">
+                      AI
+                    </span>
+                  )}
+                  {isSelf && (
+                    <span className="rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 dark:bg-emerald-900/70 dark:text-emerald-200">
+                      自分
+                    </span>
+                  )}
+                </div>
+                <p className="mt-1 whitespace-pre-wrap leading-relaxed">{msg.content}</p>
               </div>
-              <p className="mt-1 whitespace-pre-wrap">{msg.content}</p>
-            </div>
-          ))
+            );
+          })
         )}
 
         {!isGroupChat && soloPromptShown && (
-          <div className="rounded-lg border border-blue-100 bg-blue-50/70 p-3 text-sm text-gray-800 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-neutral-100">
-            <div className="text-xs font-semibold text-blue-700 dark:text-blue-300">
-              Participant（修行中） (AI)
+          <div className="rounded-lg border border-blue-200/80 bg-blue-50/80 p-3 text-sm text-gray-800 dark:border-blue-900/60 dark:bg-blue-950/35 dark:text-neutral-100">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-blue-700 dark:text-blue-300">
+              <span>Participant（修行中）</span>
+              <span className="rounded-full bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium text-blue-700 dark:bg-blue-900/70 dark:text-blue-200">
+                AI
+              </span>
             </div>
-            <p className="mt-1 whitespace-pre-wrap">
+            <p className="mt-1 whitespace-pre-wrap leading-relaxed">
               まだ1人みたいだけど、誰か呼ばないの？ グループチャットだから、もう1人くらいいるとボクも会話に混ざりやすいんだけどな〜。
             </p>
             <button
@@ -584,13 +623,13 @@ function ChatRoomContent() {
       </div>
 
       {quotaNotice && (
-        <div className="mb-2 flex items-center justify-between gap-2 rounded bg-amber-50 p-2 text-xs text-amber-800 dark:bg-amber-950/50 dark:text-amber-200">
+        <div className="mb-2 flex items-center justify-between gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/50 dark:text-amber-200">
           <span>{quotaNotice}</span>
           <button
             type="button"
             onClick={() => setQuotaNotice('')}
             aria-label="通知を閉じる"
-            className="px-1 font-bold text-amber-900"
+            className="px-1 font-bold text-amber-900 hover:opacity-75 dark:text-amber-100"
           >
             ×
           </button>
@@ -598,7 +637,9 @@ function ChatRoomContent() {
       )}
 
       {errorMsg && (
-        <p className="mb-2 rounded bg-red-50 p-2 text-xs text-red-600 dark:bg-red-950/50 dark:text-red-300">{errorMsg}</p>
+        <p className="mb-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-600 dark:border-red-900/60 dark:bg-red-950/50 dark:text-red-300">
+          {errorMsg}
+        </p>
       )}
 
       <div className="mb-2 flex items-center gap-1.5">
@@ -609,7 +650,7 @@ function ChatRoomContent() {
             disabled={sending || roomNotFound}
             onClick={() => void handleQuickEmojiSend(emoji)}
             aria-label={`${emoji}を送信`}
-            className="rounded border border-gray-300 bg-white px-2.5 py-1 text-base leading-none hover:bg-gray-100 disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-900 dark:hover:bg-neutral-800"
+            className="rounded-lg border border-gray-300 bg-white px-2.5 py-1 text-base leading-none hover:bg-gray-100 disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-900 dark:hover:bg-neutral-800"
           >
             {emoji}
           </button>
@@ -622,12 +663,12 @@ function ChatRoomContent() {
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
           placeholder="メッセージを入力..."
-          className="flex-1 rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:placeholder:text-neutral-500"
+          className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:placeholder:text-neutral-500"
         />
         <button
           type="submit"
           disabled={sending}
-          className="rounded bg-neutral-900 px-4 py-2 text-sm text-white hover:bg-neutral-800 disabled:opacity-50 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-200"
+          className="rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-200"
         >
           {sending ? '送信中...' : '送信'}
         </button>
