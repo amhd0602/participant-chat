@@ -575,24 +575,28 @@ function ChatRoomContent() {
             return (
               <div
                 key={msg.id}
-                className={`rounded-lg p-2.5 text-sm ${bubbleClass}`}
+                className={`flex w-full ${isSelf ? "justify-end" : "justify-start"}`}
               >
-                <div className="flex items-center gap-1.5 text-xs font-semibold">
-                  <span className={nameClass}>
-                    {msg.sender_name || msg.sender_type}
-                  </span>
-                  {isAi && (
-                    <span className="rounded-full bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium text-blue-700 dark:bg-blue-900/70 dark:text-blue-200">
-                      AI
+                <div
+                  className={`max-w-[80%] rounded-lg p-2.5 text-sm ${bubbleClass}`}
+                >
+                  <div className="flex items-center gap-1.5 text-xs font-semibold">
+                    <span className={nameClass}>
+                      {msg.sender_name || msg.sender_type}
                     </span>
-                  )}
-                  {isSelf && (
-                    <span className="rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 dark:bg-emerald-900/70 dark:text-emerald-200">
-                      自分
-                    </span>
-                  )}
+                    {isAi && (
+                      <span className="rounded-full bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium text-blue-700 dark:bg-blue-900/70 dark:text-blue-200">
+                        AI
+                      </span>
+                    )}
+                    {isSelf && (
+                      <span className="rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 dark:bg-emerald-900/70 dark:text-emerald-200">
+                        自分
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-1 whitespace-pre-wrap break-words leading-relaxed">{msg.content}</p>
                 </div>
-                <p className="mt-1 whitespace-pre-wrap leading-relaxed">{msg.content}</p>
               </div>
             );
           })
