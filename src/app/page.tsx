@@ -139,7 +139,7 @@ export default function HomePage() {
           type="text"
           value={userName}
           onChange={(e) => setUserNameOverride(e.target.value)}
-          placeholder="例：マコト"
+          placeholder="例：タロウ"
           className="rounded border px-3 py-2 text-sm"
         />
       </div>
