@@ -436,6 +436,7 @@ function ChatRoomContent() {
             </button>
           </form>
         </div>
+        <AdSenseSlot />
       </main>
     );
   }

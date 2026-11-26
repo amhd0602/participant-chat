@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { AiModeSelector } from '@/components/AiModeSelector';
 import { clearByokApiKey, loadAiSelection, saveAiSelection, type AiMode } from '@/types/ai-selection';
+import { AdSenseSlot } from '@/components/AdSenseSlot';
 
 const emptySubscribe = () => () => {};
 
@@ -185,6 +186,7 @@ export default function HomePage() {
       {errorMsg && (
         <p className="rounded bg-red-50 p-3 text-sm text-red-600">{errorMsg}</p>
       )}
+      <AdSenseSlot />
     </main>
   );
 }
