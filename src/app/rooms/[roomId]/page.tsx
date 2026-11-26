@@ -461,7 +461,7 @@ function ChatRoomContent() {
   }
 
   return (
-    <main className="mx-auto flex h-screen max-w-2xl flex-col p-4">
+    <main className="mx-auto flex h-dvh max-w-2xl flex-col p-4">
       <header className="border-b border-gray-200 pb-2.5 dark:border-neutral-800">
         <div className="flex items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-2">
