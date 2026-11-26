@@ -158,7 +158,6 @@ export default function HomePage() {
               会話参加型 AI グループチャット
             </span>
           </div>
-          <span className="mt-8 text-xs text-neutral-500">タップまたは3秒で進みます</span>
         </div>
       )}
       <main className="mx-auto flex min-h-screen max-w-xl flex-col justify-center gap-6 p-6">
