@@ -6,6 +6,7 @@ import { useParams, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { AiModeSelector } from '@/components/AiModeSelector';
 import { AI_MODE_OPTIONS, type AiMode, clearByokApiKey, loadAiSelection, saveAiSelection } from '@/types/ai-selection';
+import { AdSenseSlot } from '@/components/AdSenseSlot';
 
 type ChatMessage = {
   id: string;
@@ -677,6 +678,7 @@ function ChatRoomContent() {
           {sending ? '送信中...' : '送信'}
         </button>
       </form>
+      <AdSenseSlot />
     </main>
   );
 }
