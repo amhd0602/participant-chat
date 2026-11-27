@@ -282,6 +282,7 @@ export async function POST(req: Request) {
       senderName?: unknown;
       aiMode?: unknown;
       apiKey?: unknown;
+      mode?: unknown;
     };
     try {
       body = await req.json();
@@ -295,6 +296,7 @@ export async function POST(req: Request) {
         ? body.senderName.trim()
         : 'Participant';
     const aiMode = normalizeAiMode(body.aiMode);
+    const isIdleMode = body.mode === 'idle';
     const apiKey = typeof body.apiKey === 'string' ? body.apiKey.trim() : '';
 
     if (!roomId) {
@@ -384,7 +386,13 @@ export async function POST(req: Request) {
       }
     }
 
-    if (distinctHumanNames.size < 2) {
+    const hasAnyHuman = recentMessages.some((m) => m.sender_type === 'human');
+    if (isIdleMode) {
+      const latestMsg = recentMessages[0];
+      if (!hasAnyHuman || !latestMsg || latestMsg.sender_type !== 'human') {
+        return NextResponse.json({ ok: true, skipped: true, reason: 'idle_not_applicable' });
+      }
+    } else if (distinctHumanNames.size < 2) {
       return NextResponse.json({ ok: true, skipped: true, reason: 'not_group_chat' });
     }
 
@@ -406,7 +414,9 @@ export async function POST(req: Request) {
     const res = await generateText({
       model,
       maxRetries: 0,
-      system: COMBINED_SYSTEM_PROMPT,
+      system: isIdleMode
+        ? `${COMBINED_SYSTEM_PROMPT}\n今は最後の人間発言から30秒ほど誰も発言していない静かな時間です。質問はせず、直近の話題や場の空気に寄り添う短い独り言・つぶやきを1文だけ自然に呟いてください。不自然なときは [NO] を返してください。`
+        : COMBINED_SYSTEM_PROMPT,
       prompt: `これまでの会話:\n${historyText}${weatherContextBlock}\n\n発言すべきなら短く自然にひと言だけ返答してください。黙るべきなら [NO] とだけ返してください。`,
     });
 

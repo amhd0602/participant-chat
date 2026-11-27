@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Suspense, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { AiModeSelector } from '@/components/AiModeSelector';
@@ -73,6 +73,8 @@ function ChatRoomContent() {
   const presenceKeyRef = useRef<string>('');
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const aiTriggeringRef = useRef(false);
+  const idleTriggeredForHumanMsgIdRef = useRef<string | null>(null);
+  const triggerAiPeerRef = useRef<((currentRoomId: string, options?: { mode?: 'reply' | 'idle' }) => Promise<void>) | null>(null);
   const lastAiTriggerAtRef = useRef(0);
   const selectedAiModeRef = useRef<AiMode>("standard");
 
@@ -279,6 +281,27 @@ function ChatRoomContent() {
     return () => clearTimeout(timer);
   }, [isRegistered, isGroupChat, soloPromptShown]);
 
+  useEffect(() => {
+    if (!roomId || !isRegistered || roomNotFound) return;
+    const lastHumanMsg = [...messages].reverse().find((m) => m.sender_type === 'human');
+    if (!lastHumanMsg) return;
+    const latestMsg = messages[messages.length - 1];
+    if (!latestMsg || latestMsg.sender_type !== 'human') return;
+    if (idleTriggeredForHumanMsgIdRef.current === lastHumanMsg.id) return;
+
+    const createdAtMs = new Date(lastHumanMsg.created_at).getTime();
+    const elapsedMs = Number.isFinite(createdAtMs) ? Math.max(0, Date.now() - createdAtMs) : 0;
+    const remainingMs = Math.max(0, 30_000 - elapsedMs);
+
+    const timer = setTimeout(() => {
+      if (idleTriggeredForHumanMsgIdRef.current === lastHumanMsg.id) return;
+      idleTriggeredForHumanMsgIdRef.current = lastHumanMsg.id;
+      void triggerAiPeerRef.current?.(roomId, { mode: 'idle' });
+    }, remainingMs);
+
+    return () => clearTimeout(timer);
+  }, [roomId, isRegistered, roomNotFound, messages]);
+
   const handleRegisterName = (e: React.FormEvent) => {
     e.preventDefault();
     if (!roomId) return;
@@ -287,7 +310,7 @@ function ChatRoomContent() {
     notifyRoomNameChange();
   };
 
-  const triggerAiPeer = async (currentRoomId: string) => {
+  const triggerAiPeer = useCallback(async (currentRoomId: string, options?: { mode?: 'reply' | 'idle' }) => {
     const now = Date.now();
     if (aiTriggeringRef.current || now - lastAiTriggerAtRef.current < 3000) {
       return;
@@ -308,6 +331,7 @@ function ChatRoomContent() {
         body: JSON.stringify({
           roomId: currentRoomId,
           senderName: 'Participant（修行中）',
+          ...(options?.mode ? { mode: options.mode } : {}),
           aiMode: selectedAiMode,
           ...(selectedAiMode === 'byok' && effectiveApiKey
             ? { apiKey: effectiveApiKey }
@@ -347,7 +371,12 @@ function ChatRoomContent() {
     } finally {
       aiTriggeringRef.current = false;
     }
-  };
+
+  }, [draftApiKey, queryAiMode, selectedAiMode]);
+
+  useEffect(() => {
+    triggerAiPeerRef.current = triggerAiPeer;
+  }, [triggerAiPeer]);
 
   const handleCopyInviteLink = async () => {
     try {
