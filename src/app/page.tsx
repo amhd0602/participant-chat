@@ -161,6 +161,7 @@ export default function HomePage() {
         </div>
       )}
       <main className="mx-auto flex min-h-screen max-w-xl flex-col justify-center gap-6 p-6">
+      <p className="text-sm text-gray-500">使用する AI を選択し、チャットルームを作成または参加してください。</p>
 
       <div className="flex flex-col gap-2">
         <label className="text-sm font-medium">あなたの表示名</label>
