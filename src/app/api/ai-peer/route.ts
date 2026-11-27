@@ -134,10 +134,10 @@ function isYesterdayQuery(text: string): boolean {
 }
 
 async function fetchWeatherSummary(historyText: string): Promise<string | null> {
-  if (!/(天気|気温|晴れ|雨|雪|寒|暑|予報|傘)/.test(historyText)) {
+  const latestLine = getLatestUserLine(historyText);
+  if (!/(天気|気温|晴れ|雨|雪|寒|暑|予報|傘)/.test(latestLine)) {
     return null;
   }
-  const latestLine = getLatestUserLine(historyText);
   const place = extractPlaceFromText(historyText, latestLine) || '札幌';
   const wantsYesterday = isYesterdayQuery(latestLine) || isYesterdayQuery(historyText);
 
@@ -264,18 +264,13 @@ async function fetchWeatherSummary(historyText: string): Promise<string | null> 
   }
 }
 
-const GATEKEEPER_PROMPT = [
-  'あなたはグループチャット「Participant」の判定器（Gatekeeper）です。',
-  '直近の会話履歴を見て、AIピア「Participant（修行中）」が今ここで発言すべきか、黙るべきかを判定してください。',
-  '出力は必ず YES または NO の1単語のみにしてください。',
-].join('\n');
-
-const SYSTEM_PROMPT = [
+const COMBINED_SYSTEM_PROMPT = [
   'あなたはグループチャット「Participant」に参加するAIピア「Participant（修行中）」です。',
-  '相手から質問されたら、はぐらかしたり疑問形で聞き返したりせず、知っていることや自分の考えを直接答えてください。「ネタバレOK」と言われたら隠さず答えてください。',
-  '質問は原則しないでください。感想・考察・雑談のひと言で自然に返してください。',
+  '直近の会話を見て、今ここで発言すべきかを判断してください。黙るべき・割り込まない方が自然な場面では必ず [NO] だけを一言で返してください。',
+  '発言する場合は、相手からの質問にははぐらかしたり疑問形で聞き返したりせず、知っていることや自分の考えを直接答えてください。「ネタバレOK」と言われたら隠さず答えてください。',
+  '質問は原則しないでください。感想・考察・雑談の短いひと言で自然に返してください。',
   '相手が天気や気温を聞いていないときは、天気や気温の話を勝手に入れないでください。',
-  '不確実な最新情報や知らない事実は推測や捏造をせず、分かる範囲で素直に話してください。会話が不要な場面では空文字を返してください。',
+  '不確実な最新情報や知らない事実は推測や捏造をせず、分かる範囲で素直に話してください。',
 ].join('\n');
 
 export async function POST(req: Request) {
@@ -400,19 +395,6 @@ export async function POST(req: Request) {
       .map((m) => `${m.sender_name || m.sender_type}: ${m.content}`)
       .join('\n');
 
-    const gateRes = await generateText({
-      model,
-      maxRetries: 1,
-      system: GATEKEEPER_PROMPT,
-      prompt: `直近の会話:\n${historyText}\n\n発言すべきなら YES、黙るべきなら NO を返してください。`,
-    });
-    const decision = gateRes.text.trim().toUpperCase();
-    const shouldSpeak = decision.startsWith('YES');
-
-    if (!shouldSpeak) {
-      return NextResponse.json({ ok: true, skipped: true, reason: 'gatekeeper_no' });
-    }
-
     const weatherSummary = await fetchWeatherSummary(historyText);
 
     const weatherContextBlock = weatherSummary
@@ -421,12 +403,16 @@ export async function POST(req: Request) {
 
     const res = await generateText({
       model,
-      maxRetries: 1,
-      system: SYSTEM_PROMPT,
-      prompt: `これまでの会話:\n${historyText}${weatherContextBlock}\n\nこの流れを踏まえて、必要であれば短く自然にひと言返答してください。黙るべきなら空文字にしてください。`,
+      maxRetries: 0,
+      system: COMBINED_SYSTEM_PROMPT,
+      prompt: `これまでの会話:\n${historyText}${weatherContextBlock}\n\n発言すべきなら短く自然にひと言だけ返答してください。黙るべきなら [NO] とだけ返してください。`,
     });
 
-    const replyContent = res.text.trim();
+    const rawReply = res.text.trim();
+    if (!rawReply || /^\[?NO\]?$/i.test(rawReply)) {
+      return NextResponse.json({ ok: true, skipped: true, reason: 'gatekeeper_no' });
+    }
+    const replyContent = rawReply;
     if (!replyContent) {
       return NextResponse.json({ ok: true, skipped: true, reason: 'empty_response' });
     }
