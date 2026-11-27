@@ -74,16 +74,23 @@ function ChatRoomContent() {
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const aiTriggeringRef = useRef(false);
   const lastAiTriggerAtRef = useRef(0);
+  const selectedAiModeRef = useRef<AiMode>("standard");
 
   const [selectedAiMode, setSelectedAiMode] = useState<AiMode>(() => loadAiSelection(queryAiMode).aiMode);
   const [draftApiKey, setDraftApiKey] = useState<string>(() => loadAiSelection(queryAiMode).apiKey ?? '');
   const [isAiSettingsOpen, setIsAiSettingsOpen] = useState(false);
 
-  useEffect(() => {
+  const [prevQueryAiMode, setPrevQueryAiMode] = useState(queryAiMode);
+  if (queryAiMode !== prevQueryAiMode) {
     const loaded = loadAiSelection(queryAiMode);
+    setPrevQueryAiMode(queryAiMode);
     setSelectedAiMode(loaded.aiMode);
-    setDraftApiKey(loaded.apiKey ?? '');
-  }, [queryAiMode]);
+    setDraftApiKey(loaded.apiKey ?? "");
+  }
+
+  useEffect(() => {
+    selectedAiModeRef.current = selectedAiMode;
+  }, [selectedAiMode]);
 
   const storedSelection = loadAiSelection(queryAiMode);
   const currentSelection = {
@@ -238,7 +245,7 @@ function ChatRoomContent() {
             if (prev.some((m) => m.id === newMsg.id)) return prev;
             return [...prev, newMsg];
           });
-          if (newMsg.sender_type === 'ai' && selectedAiMode !== 'byok') {
+          if (newMsg.sender_type === 'ai' && selectedAiModeRef.current !== 'byok') {
             setAiUsedCount((prev) => (prev === null ? 1 : prev + 1));
           }
         }

@@ -161,15 +161,6 @@ export default function HomePage() {
         </div>
       )}
       <main className="mx-auto flex min-h-screen max-w-xl flex-col justify-center gap-6 p-6">
-      <div>
-        <div className="flex flex-wrap items-baseline gap-2">
-          <h1 className="text-2xl font-bold">Participant</h1>
-          <span className="text-sm font-normal text-blue-600 dark:text-blue-400 underline underline-offset-4 decoration-blue-500/60 dark:decoration-blue-400/60">会話参加型 AI グループチャット</span>
-        </div>
-        <p className="mt-1 text-sm text-gray-500">
-          使用する AI を選択し、チャットルームを作成または参加してください。
-        </p>
-      </div>
 
       <div className="flex flex-col gap-2">
         <label className="text-sm font-medium">あなたの表示名</label>
@@ -227,7 +218,13 @@ export default function HomePage() {
       {errorMsg && (
         <p className="rounded bg-red-50 p-3 text-sm text-red-600">{errorMsg}</p>
       )}
-      <AdSenseSlot />
+      <div className="flex flex-col items-center gap-2">
+        <AdSenseSlot />
+        <div className="flex flex-wrap items-baseline justify-center gap-2 text-xs text-gray-500 dark:text-neutral-400">
+          <span className="font-semibold text-gray-700 dark:text-neutral-200">Participant</span>
+          <span>会話参加型 AI グループチャット</span>
+        </div>
+      </div>
     </main>
     </>
   );
