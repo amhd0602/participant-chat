@@ -33,9 +33,10 @@ export function AdSenseSlot({ slotId, className = '' }: AdSenseSlotProps) {
     return (
       <div
         aria-label="広告枠プレースホルダー"
-        className={`mt-2.5 flex min-h-[44px] w-full shrink-0 items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50/80 px-3 py-1.5 text-[11px] text-gray-400 dark:border-neutral-800 dark:bg-neutral-900/50 dark:text-neutral-500 ${className}`}
+        className={`mt-2.5 flex min-h-[44px] w-full shrink-0 items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50/80 px-3 py-1.5 flex-wrap gap-2 text-xs text-gray-500 dark:border-neutral-800 dark:bg-neutral-900/50 dark:text-neutral-400 ${className}`}
       >
-        Ad
+        <span className="font-semibold text-gray-700 dark:text-neutral-200">Participant</span>
+        <span>会話参加型AIグループチャット</span>
       </div>
     );
   }

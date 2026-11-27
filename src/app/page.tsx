@@ -218,13 +218,7 @@ export default function HomePage() {
       {errorMsg && (
         <p className="rounded bg-red-50 p-3 text-sm text-red-600">{errorMsg}</p>
       )}
-      <div className="flex flex-col items-center gap-2">
-        <AdSenseSlot />
-        <div className="flex flex-wrap items-baseline justify-center gap-2 text-xs text-gray-500 dark:text-neutral-400">
-          <span className="font-semibold text-gray-700 dark:text-neutral-200">Participant</span>
-          <span>会話参加型 AI グループチャット</span>
-        </div>
-      </div>
+      <AdSenseSlot />
     </main>
     </>
   );
