@@ -21,7 +21,7 @@ export function AiModeSelector({
   return (
     <fieldset className="space-y-2 rounded-lg border border-slate-200 bg-white p-4 text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
       <legend className="px-1 text-sm font-semibold text-slate-800 dark:text-slate-200">
-        Participant に使う AI を選択
+        Participant に使用する AI を選択
       </legend>
 
       <div className="space-y-2">
