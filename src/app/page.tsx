@@ -152,11 +152,8 @@ export default function HomePage() {
             introFading ? 'opacity-0' : 'opacity-100'
           }`}
         >
-          <div className="flex flex-col items-center gap-2 text-center">
+          <div className="flex flex-col items-center gap-3 text-center">
             <span className="text-3xl font-bold tracking-tight">Participant</span>
-            <span className="text-xs font-normal tracking-wide text-neutral-400">
-              AI as a Participant
-            </span>
             <span className="text-sm font-normal text-blue-400 underline underline-offset-4 decoration-blue-400/70">
               会話参加型AIグループチャット
             </span>
