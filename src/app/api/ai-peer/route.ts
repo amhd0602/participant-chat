@@ -133,6 +133,143 @@ function isYesterdayQuery(text: string): boolean {
   return /(昨日|きのう|前日|1日前|yesterday)/i.test(text);
 }
 
+type TopicCacheEntry = {
+  expiresAt: number;
+  items: string[];
+};
+
+const NEWS_KEYWORDS = /ニュース|速報|話題|記事|事件|事故|選挙|政治|経済|景気|物価|円安|円高|株|気象|地震|災害/i;
+const SPORTS_KEYWORDS = /スポーツ|試合|スコア|勝った|負けた|引き分け|サッカー|野球|バスケ|ラグビー|テニス|ゴルフ|五輪|オリンピック|ワールドカップ|リーグ|優勝|監督|選手|代表/i;
+
+let newsCache: TopicCacheEntry | null = null;
+let sportsCache: TopicCacheEntry | null = null;
+
+function decodeXmlEntities(text: string): string {
+  return text
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, "\"")
+    .replace(/&#39;/g, "'")
+    .trim();
+}
+
+async function fetchNewsItems(): Promise<string[]> {
+  const now = Date.now();
+  if (newsCache && newsCache.expiresAt > now) {
+    return newsCache.items;
+  }
+
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 3500);
+    const res = await fetch("https://www.nhk.or.jp/rss/news/cat0.xml", {
+      signal: controller.signal,
+      headers: { "User-Agent": "participant-chat/1.0" },
+    });
+    clearTimeout(timer);
+    if (!res.ok) return newsCache?.items ?? [];
+
+    const xml = await res.text();
+    const titles: string[] = [];
+    const itemMatches = xml.match(/<item[\s\S]*?<\/item>/gi) ?? [];
+    for (const item of itemMatches.slice(0, 6)) {
+      const titleMatch = item.match(/<title>([\s\S]*?)<\/title>/i);
+      if (titleMatch?.[1]) {
+        const clean = decodeXmlEntities(titleMatch[1]).replace(/\s+/g, " ");
+        if (clean) titles.push(clean);
+      }
+    }
+
+    newsCache = { expiresAt: now + 10 * 60 * 1000, items: titles };
+    return titles;
+  } catch {
+    return newsCache?.items ?? [];
+  }
+}
+
+async function fetchSportsItems(): Promise<string[]> {
+  const now = Date.now();
+  if (sportsCache && sportsCache.expiresAt > now) {
+    return sportsCache.items;
+  }
+
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 3500);
+    const res = await fetch(
+      "https://www.thesportsdb.com/api/v1/json/3/eventsnextleague.php?id=4328",
+      { signal: controller.signal }
+    );
+    clearTimeout(timer);
+    if (!res.ok) return sportsCache?.items ?? [];
+
+    const data = (await res.json()) as {
+      events?: Array<{
+        strEvent?: string | null;
+        dateEvent?: string | null;
+        strLeague?: string | null;
+      }> | null;
+    };
+
+    const items = (data.events ?? [])
+      .slice(0, 5)
+      .map((ev) => {
+        const name = ev.strEvent?.trim();
+        if (!name) return "";
+        const date = ev.dateEvent ? ` (${ev.dateEvent})` : "";
+        return `${name}${date}`;
+      })
+      .filter(Boolean);
+
+    sportsCache = { expiresAt: now + 15 * 60 * 1000, items };
+    return items;
+  } catch {
+    return sportsCache?.items ?? [];
+  }
+}
+
+async function buildTopicContextBlock(historyText: string, isIdleMode: boolean): Promise<string> {
+  const latestLine = historyText.split("\n").slice(-2).join("\n");
+  const wantsNews = NEWS_KEYWORDS.test(latestLine);
+  const wantsSports = SPORTS_KEYWORDS.test(latestLine);
+
+  if (!isIdleMode && !wantsNews && !wantsSports) {
+    return "";
+  }
+
+  const lines: string[] = [];
+
+  if (wantsNews || isIdleMode) {
+    const newsItems = await fetchNewsItems();
+    if (newsItems.length > 0) {
+      const picked = isIdleMode
+        ? newsItems[Math.floor(Math.random() * newsItems.length)]
+        : newsItems.slice(0, 3).join(" / ");
+      lines.push(`- ニュース見出し: ${picked}`);
+    }
+  }
+
+  if (wantsSports || (isIdleMode && lines.length === 0)) {
+    const sportsItems = await fetchSportsItems();
+    if (sportsItems.length > 0) {
+      const picked = isIdleMode
+        ? sportsItems[Math.floor(Math.random() * sportsItems.length)]
+        : sportsItems.slice(0, 3).join(" / ");
+      lines.push(`- スポーツ予定: ${picked}`);
+    }
+  }
+
+  if (lines.length === 0) return "";
+
+  if (isIdleMode) {
+    return `\n\n【参考：話題の種（ニュース・スポーツ）】\n${lines.join("\n")}\n※静かな時間の独り言として、合う場合だけ軽く触れても構いません。押し付けや質問はしないでください。`;
+  }
+
+  return `\n\n【参考：ニュース・スポーツ情報】\n${lines.join("\n")}\n※直近の会話がニュースやスポーツに関わる場合のみ、事実の範囲で短く自然に話題に触れてください。`;
+}
+
 async function fetchWeatherSummary(historyText: string): Promise<string | null> {
   const latestLine = getLatestUserLine(historyText);
   if (!/(天気|気温|晴れ|雨|雪|寒|暑|予報|傘)/.test(latestLine)) {
@@ -411,13 +548,15 @@ export async function POST(req: Request) {
       ? `\n\n【参考：天気データ（Open-Meteo）】\n${weatherSummary}\n※直近のユーザー発言が天気や気温に関する質問・話題のときだけ使ってください。それ以外の話題では無理に使わないでください。`
       : '';
 
+    const topicContextBlock = await buildTopicContextBlock(historyText, isIdleMode);
+
     const res = await generateText({
       model,
       maxRetries: 0,
       system: isIdleMode
         ? `${COMBINED_SYSTEM_PROMPT}\n今は最後の人間発言から30秒ほど誰も発言していない静かな時間です。質問はせず、直近の話題や場の空気に寄り添う短い独り言・つぶやきを1文だけ自然に呟いてください。不自然なときは [NO] を返してください。`
         : COMBINED_SYSTEM_PROMPT,
-      prompt: `これまでの会話:\n${historyText}${weatherContextBlock}\n\n発言すべきなら短く自然にひと言だけ返答してください。黙るべきなら [NO] とだけ返してください。`,
+      prompt: `これまでの会話:\n${historyText}${weatherContextBlock}${topicContextBlock}\n\n発言すべきなら短く自然にひと言だけ返答してください。黙るべきなら [NO] とだけ返してください。`,
     });
 
     const rawReply = res.text.trim();
