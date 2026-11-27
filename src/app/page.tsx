@@ -27,6 +27,7 @@ export default function HomePage() {
   const [roomIdInput, setRoomIdInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [roomCount, setRoomCount] = useState<number | null>(null);
   const [showIntro, setShowIntro] = useState(true);
   const [introFading, setIntroFading] = useState(false);
 
@@ -74,6 +75,23 @@ export default function HomePage() {
 
   useEffect(() => {
     clearByokApiKey();
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    const fetchRoomCount = async () => {
+      const { count, error } = await supabase
+        .from('rooms')
+        .select('id', { count: 'exact', head: true });
+      if (!active) return;
+      if (!error && typeof count === 'number') {
+        setRoomCount(count);
+      }
+    };
+    void fetchRoomCount();
+    return () => {
+      active = false;
+    };
   }, []);
 
   const validateAiSelection = () => {
@@ -161,7 +179,14 @@ export default function HomePage() {
         </div>
       )}
       <main className="mx-auto flex min-h-screen max-w-xl flex-col justify-center gap-6 p-6">
-      <p className="text-sm text-gray-500">使用する AI を選択し、チャットルームを作成または参加してください。</p>
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-sm text-gray-500">使用する AI を選択し、チャットルームを作成または参加してください。</p>
+        {roomCount !== null && (
+          <span className="shrink-0 rounded-full border px-2.5 py-0.5 text-xs text-gray-600">
+            作成済みルーム: {roomCount}
+          </span>
+        )}
+      </div>
 
       <div className="flex flex-col gap-2">
         <label className="text-sm font-medium">あなたの表示名</label>
