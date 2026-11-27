@@ -413,7 +413,10 @@ export async function POST(req: Request) {
     if (!rawReply || /^\[?NO\]?$/i.test(rawReply)) {
       return NextResponse.json({ ok: true, skipped: true, reason: 'gatekeeper_no' });
     }
-    const replyContent = rawReply;
+    const isFinalFreeTurn = aiMode !== 'byok' && usedAiCount + 1 === ROOM_AI_LIMIT;
+    const replyContent = isFinalFreeTurn
+      ? `${rawReply}\n\n（※このルームのAI利用枠（${ROOM_AI_LIMIT}回）は今回で使い切りました！続けて話したいときは設定からBYOKモードに切り替えてね）`
+      : rawReply;
     if (!replyContent) {
       return NextResponse.json({ ok: true, skipped: true, reason: 'empty_response' });
     }
